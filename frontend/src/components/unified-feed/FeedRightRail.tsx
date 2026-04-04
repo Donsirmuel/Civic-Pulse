@@ -1,0 +1,130 @@
+import { Icon } from '../common';
+import type { Post } from '../issues/PostCard';
+
+interface FeedRightRailProps {
+  posts: Post[];
+}
+
+function truncate(text: string, max: number) {
+  return text.length <= max ? text : `${text.slice(0, max).trim()}...`;
+}
+
+export default function FeedRightRail({ posts }: FeedRightRailProps) {
+  const officialPosts = posts.filter((post) => post.author.role === 'official').slice(0, 2);
+
+  const trendingTopics = Array.from(
+    posts.reduce((map, post) => {
+      const key = post.issueCategory || post.scope || 'community';
+      map.set(key, (map.get(key) || 0) + 1);
+      return map;
+    }, new Map<string, number>()),
+  )
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4);
+
+  const trustedOfficials = Array.from(
+    new Map(
+      posts
+        .filter((post) => post.author.role === 'official')
+        .map((post) => [post.author.id || post.author.username, post.author]),
+    ).values(),
+  ).slice(0, 3);
+
+  return (
+    <div className="space-y-4">
+      <section className="civic-panel-soft p-5">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-lg font-black tracking-[-0.03em] text-[var(--civic-text)]">Trending Topics</p>
+          <Icon name="local_fire_department" className="text-[18px] text-[var(--civic-primary)]" />
+        </div>
+
+        <div className="mt-4 space-y-3">
+          {trendingTopics.map(([topic, count]) => (
+            <article
+              key={topic}
+              className="rounded-md px-4 py-4"
+              style={{ background: 'var(--civic-surface-strong)', boxShadow: 'inset 0 0 0 1px var(--civic-ghost-border)' }}
+            >
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--civic-muted)]">
+                {topic === 'national' || topic === 'state' || topic === 'local' ? 'Feed pulse' : 'Topic'}
+              </p>
+              <p className="mt-2 text-sm font-bold capitalize text-[var(--civic-text)]">
+                {topic.replace('_', ' ')}
+              </p>
+              <p className="mt-1 text-xs text-[var(--civic-muted)]">{count} posts</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="civic-panel-soft p-5">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-lg font-black tracking-[-0.03em] text-[var(--civic-text)]">Directives</p>
+          <Icon name="campaign" className="text-[18px] text-[var(--civic-gold)]" />
+        </div>
+
+        <div className="mt-4 space-y-3">
+          {officialPosts.length ? (
+            officialPosts.map((post) => (
+              <article
+                key={`${post.type}-${post.id}`}
+                className="rounded-md px-4 py-4"
+                style={{ background: 'var(--civic-surface-strong)', boxShadow: 'inset 0 0 0 1px var(--civic-ghost-border)' }}
+              >
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--civic-primary)]">
+                  {post.author.name}
+                </p>
+                <p className="mt-2 text-sm font-bold leading-6 text-[var(--civic-text)]">
+                  {truncate(post.title || post.content, 88)}
+                </p>
+              </article>
+            ))
+          ) : (
+            <div
+              className="rounded-md px-4 py-4 text-sm text-[var(--civic-muted)]"
+              style={{ background: 'var(--civic-surface-strong)', boxShadow: 'inset 0 0 0 1px var(--civic-ghost-border)' }}
+            >
+              No new updates right now.
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="civic-panel-soft p-5">
+        <p className="text-lg font-black tracking-[-0.03em] text-[var(--civic-text)]">Trustworthy Officials</p>
+        <div className="mt-4 space-y-3">
+          {trustedOfficials.length ? (
+            trustedOfficials.map((official) => (
+              <div
+                key={official.id || official.username}
+                className="flex items-center gap-3 rounded-md px-4 py-3"
+                style={{ background: 'var(--civic-surface-strong)', boxShadow: 'inset 0 0 0 1px var(--civic-ghost-border)' }}
+              >
+                <img
+                  src={
+                    official.avatar ||
+                    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop'
+                  }
+                  alt={official.name}
+                  className="size-11 rounded-md object-cover"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold text-[var(--civic-text)]">{official.name}</p>
+                  <p className="truncate text-[11px] text-[var(--civic-muted)]">@{official.username}</p>
+                </div>
+                <button className="civic-ghost-button !min-h-0 !px-3 !py-2">Follow</button>
+              </div>
+            ))
+          ) : (
+            <div
+              className="rounded-md px-4 py-4 text-sm text-[var(--civic-muted)]"
+              style={{ background: 'var(--civic-surface-strong)', boxShadow: 'inset 0 0 0 1px var(--civic-ghost-border)' }}
+            >
+              No suggested offices right now.
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}
