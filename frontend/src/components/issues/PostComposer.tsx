@@ -115,7 +115,8 @@ export default function PostComposer({ onPostSubmit, onIssueSubmit }: PostCompos
           <textarea
             value={content}
             onChange={(event) => setContent(event.target.value)}
-            className="mt-4 min-h-[108px] w-full resize-none bg-transparent text-[15px] leading-7 text-[var(--civic-text)] placeholder:text-[var(--civic-muted)] focus:outline-none"
+            className="mt-4 min-h-[108px] w-full resize-none bg-transparent text-[15px] leading-7 text-[var(--civic-text)] placeholder:text-[var(--civic-muted)] outline-none ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus:[box-shadow:inset_0_0_0_1px_var(--civic-primary)]"
+            style={{ boxShadow: 'inset 0 0 0 1px var(--civic-border)' }}
             placeholder="Report an issue or share an update..."
           />
 
@@ -186,20 +187,36 @@ export default function PostComposer({ onPostSubmit, onIssueSubmit }: PostCompos
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <select
-                value={scope}
-                onChange={(event) => setScope(event.target.value as PostScope)}
-                className="civic-toolbar-pill min-h-10 !rounded-full !pl-4 !pr-10 !text-[11px] !uppercase !tracking-[0.14em]"
-              >
-                <option value="local">Local</option>
-                <option value="state">State</option>
-                <option value="national">National</option>
-              </select>
+              <div className="relative md:min-w-0">
+                <select
+                  value={scope}
+                  onChange={(event) => setScope(event.target.value as PostScope)}
+                  className="w-full appearance-none rounded-[20px] border px-11 py-2.5 pr-10 text-[11px] font-semibold uppercase tracking-[0.14em] outline-none transition hover:border-[var(--civic-border-strong)]"
+                  style={{
+                    background: 'var(--civic-surface)',
+                    borderColor: 'var(--civic-border)',
+                    color: 'var(--civic-text)',
+                    boxShadow: '0 6px 18px rgba(22,33,51,0.04)',
+                  }}
+                >
+                  <option value="local">Local</option>
+                  <option value="state">State</option>
+                  <option value="national">National</option>
+                </select>
+                <Icon
+                  name="location_on"
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[16px] text-[var(--civic-primary)]"
+                />
+                <Icon
+                  name="keyboard_arrow_down"
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[16px] text-[var(--civic-muted)]"
+                />
+              </div>
               <button
                 type="button"
                 onClick={handleSubmit}
                 disabled={!canSubmit}
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--civic-primary)_0%,var(--civic-primary-deep)_100%)] px-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--civic-primary-contrast)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-45"
+                className="inline-flex min-h-11 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--civic-primary)_0%,var(--civic-primary-deep)_100%)] px-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--civic-primary-contrast)] shadow-[0_18px_38px_rgba(10,106,59,0.16)] transition hover:brightness-105 active:brightness-95 disabled:cursor-not-allowed disabled:opacity-90"
               >
                 {mode === 'issue' ? 'Publish Report' : 'Publish Post'}
               </button>

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button, Icon, Input } from '../components/common';
 import PostCard, { type Post } from '../components/issues/PostCard';
 import StandardLayout from '../layouts/StandardLayout';
-import { postsService, usersService } from '../services';
+import { postsService, profilesService, usersService } from '../services';
 import { convertBackendPostToPost } from '../utils/dataMappers';
 import type { User } from '../types';
 
@@ -30,6 +30,7 @@ export default function ProfilePage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editFormData, setEditFormData] = useState({
@@ -92,20 +93,40 @@ export default function ProfilePage() {
 
   const handleSaveProfile = async () => {
     setIsSaving(true);
+    setSaveError(null);
     try {
-      setUser((current) =>
-        current
-          ? {
-              ...current,
-              first_name: editFormData.firstName,
-              last_name: editFormData.lastName,
-              bio: editFormData.bio,
-              location: editFormData.location,
-              avatar: avatarPreview || current.avatar,
-            }
-          : current,
-      );
+      const trimmedFirstName = editFormData.firstName.trim();
+      const trimmedLastName = editFormData.lastName.trim();
+      const trimmedBio = editFormData.bio.trim();
+      const trimmedLocation = editFormData.location.trim();
+
+      const updatedCoreUser = await usersService.updateCurrentUser({
+        first_name: trimmedFirstName,
+        last_name: trimmedLastName,
+      });
+
+      const currentProfile = await profilesService.getCurrentProfile().catch(() => null);
+      if (currentProfile) {
+        await profilesService.updateProfile(currentProfile.id, {
+          bio: trimmedBio,
+          location: trimmedLocation,
+        });
+      }
+
+      const mergedUser = {
+        ...updatedCoreUser,
+        bio: trimmedBio,
+        location: trimmedLocation,
+        avatar: avatarPreview || (updatedCoreUser as UserProfileDisplay).avatar,
+        profile_picture: avatarPreview || (updatedCoreUser as UserProfileDisplay).profile_picture,
+      } as UserProfileDisplay;
+
+      usersService.setCurrentUser(mergedUser as User);
+      setUser(mergedUser);
       setIsEditModalOpen(false);
+    } catch (err) {
+      console.error('Failed to save profile:', err);
+      setSaveError('Could not save profile right now. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -183,7 +204,7 @@ export default function ProfilePage() {
     <StandardLayout showRightSidebar={false}>
       {isEditModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(22,33,51,0.28)] px-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg civic-panel">
+          <div className="max-h-[92vh] w-full max-w-lg overflow-hidden civic-panel">
             <div className="flex items-center justify-between border-b px-6 py-5" style={{ borderColor: 'var(--civic-border)' }}>
               <h2 className="text-xl font-black tracking-[-0.03em] text-[var(--civic-text)]">Edit profile</h2>
               <button onClick={() => setIsEditModalOpen(false)} className="p-1 text-[var(--civic-muted)] hover:text-[var(--civic-text)]">
@@ -191,7 +212,7 @@ export default function ProfilePage() {
               </button>
             </div>
 
-            <div className="space-y-5 px-6 py-6">
+            <div className="space-y-5 overflow-y-auto px-6 py-6">
               <div className="flex items-center gap-4">
                 <img
                   src={
@@ -242,9 +263,13 @@ export default function ProfilePage() {
                 onChange={(event) => setEditFormData({ ...editFormData, location: event.target.value })}
                 placeholder="City, State"
               />
+
+              {saveError && (
+                <p className="text-sm font-medium text-[var(--civic-danger)]">{saveError}</p>
+              )}
             </div>
 
-            <div className="flex gap-3 border-t px-6 py-5" style={{ borderColor: 'var(--civic-border)' }}>
+            <div className="sticky bottom-0 flex gap-3 border-t px-6 py-5" style={{ borderColor: 'var(--civic-border)', background: 'var(--civic-surface)' }}>
               <Button variant="outline" fullWidth onClick={() => setIsEditModalOpen(false)}>
                 Cancel
               </Button>
@@ -271,8 +296,14 @@ export default function ProfilePage() {
 
         <div className="px-4 pb-10 lg:px-8">
           <div className="relative -mt-20 civic-panel p-6">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-              <div className="flex flex-col gap-5 sm:flex-row sm:items-end">
+            <div className="absolute right-6 top-6 z-10">
+              <Button variant="outline" size="sm" icon="edit" onClick={() => setIsEditModalOpen(true)}>
+                Edit Profile
+              </Button>
+            </div>
+
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
                 <img
                   src={
                     avatarPreview ||
@@ -296,45 +327,69 @@ export default function ProfilePage() {
                   </p>
                 </div>
               </div>
-
-              <Button variant="outline" size="sm" icon="edit" onClick={() => setIsEditModalOpen(true)}>
-                Edit Profile
-              </Button>
             </div>
 
-            <div className="mt-8 grid grid-cols-3 gap-3">
-              <div className="rounded-md p-4 sm:p-5" style={{ background: 'var(--civic-surface-strong)', boxShadow: 'inset 0 0 0 1px var(--civic-border)' }}>
-                <p className="text-2xl font-black tracking-[-0.04em] text-[var(--civic-text)] sm:text-3xl">{posts.length}</p>
-                <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--civic-muted)]">Posts</p>
+            <div className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="flex items-center gap-3 rounded-md px-3 py-3" style={{ background: 'var(--civic-surface-soft)', boxShadow: 'inset 0 0 0 1px var(--civic-border)' }}>
+                <span className="inline-flex size-8 items-center justify-center rounded-full bg-[var(--civic-primary-glow)] text-[var(--civic-primary)]">
+                  <Icon name="feed" className="text-base" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--civic-muted)]">Posts</p>
+                  <p className="text-sm font-bold text-[var(--civic-text)]">{posts.length}</p>
+                </div>
               </div>
-              <div className="rounded-md p-4 sm:p-5" style={{ background: 'var(--civic-surface-muted)', boxShadow: 'inset 0 0 0 1px var(--civic-border)' }}>
-                <p className="text-2xl font-black tracking-[-0.04em] text-[var(--civic-text)] sm:text-3xl">
-                  {posts.filter((post) => post.type === 'issue').length}
-                </p>
-                <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--civic-muted)]">Issues reported</p>
-              </div>
-              <div className="rounded-md p-4 sm:p-5" style={{ background: 'rgba(212,165,64,0.08)', boxShadow: 'inset 0 0 0 1px rgba(212,165,64,0.18)' }}>
-                <p className="text-2xl font-black tracking-[-0.04em] text-[var(--civic-text)] sm:text-3xl">
-                  {posts.reduce((sum, post) => sum + post.stats.comments, 0)}
-                </p>
-                <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--civic-muted)]">Public replies</p>
-              </div>
-            </div>
 
-            <div className="mt-6 grid gap-3 lg:grid-cols-3">
-              <div className="rounded-md p-4" style={{ background: 'var(--civic-surface-soft)', boxShadow: 'inset 0 0 0 1px var(--civic-border)' }}>
-                <p className="civic-label">Username</p>
-                <p className="mt-2 text-sm font-bold text-[var(--civic-text)]">@{user.username || 'citizen'}</p>
+              <div className="flex items-center gap-3 rounded-md px-3 py-3" style={{ background: 'var(--civic-surface-soft)', boxShadow: 'inset 0 0 0 1px var(--civic-border)' }}>
+                <span className="inline-flex size-8 items-center justify-center rounded-full bg-[var(--civic-primary-glow)] text-[var(--civic-primary)]">
+                  <Icon name="flag" className="text-base" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--civic-muted)]">Issues</p>
+                  <p className="text-sm font-bold text-[var(--civic-text)]">{posts.filter((post) => post.type === 'issue').length}</p>
+                </div>
               </div>
-              <div className="rounded-md p-4" style={{ background: 'var(--civic-surface-soft)', boxShadow: 'inset 0 0 0 1px var(--civic-border)' }}>
-                <p className="civic-label">Location</p>
-                <p className="mt-2 text-sm font-bold text-[var(--civic-text)]">{user.location || 'Nigeria'}</p>
+
+              <div className="flex items-center gap-3 rounded-md px-3 py-3" style={{ background: 'var(--civic-surface-soft)', boxShadow: 'inset 0 0 0 1px var(--civic-border)' }}>
+                <span className="inline-flex size-8 items-center justify-center rounded-full bg-[var(--civic-gold-soft)] text-[var(--civic-gold)]">
+                  <Icon name="chat_bubble" className="text-base" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--civic-muted)]">Replies</p>
+                  <p className="text-sm font-bold text-[var(--civic-text)]">{posts.reduce((sum, post) => sum + post.stats.comments, 0)}</p>
+                </div>
               </div>
-              <div className="rounded-md p-4" style={{ background: 'var(--civic-surface-soft)', boxShadow: 'inset 0 0 0 1px var(--civic-border)' }}>
-                <p className="civic-label">Joined</p>
-                <p className="mt-2 text-sm font-bold text-[var(--civic-text)]">
-                  {user?.date_joined ? new Date(user.date_joined).toLocaleDateString() : 'Recently joined'}
-                </p>
+
+              <div className="flex items-center gap-3 rounded-md px-3 py-3" style={{ background: 'var(--civic-surface-soft)', boxShadow: 'inset 0 0 0 1px var(--civic-border)' }}>
+                <span className="inline-flex size-8 items-center justify-center rounded-full bg-[var(--civic-primary-glow)] text-[var(--civic-primary)]">
+                  <Icon name="alternate_email" className="text-base" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--civic-muted)]">Username</p>
+                  <p className="truncate text-sm font-bold text-[var(--civic-text)]">@{user.username || 'citizen'}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 rounded-md px-3 py-3" style={{ background: 'var(--civic-surface-soft)', boxShadow: 'inset 0 0 0 1px var(--civic-border)' }}>
+                <span className="inline-flex size-8 items-center justify-center rounded-full bg-[var(--civic-primary-glow)] text-[var(--civic-primary)]">
+                  <Icon name="location_on" className="text-base" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--civic-muted)]">Location</p>
+                  <p className="truncate text-sm font-bold text-[var(--civic-text)]">{user.location || 'Nigeria'}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 rounded-md px-3 py-3" style={{ background: 'var(--civic-surface-soft)', boxShadow: 'inset 0 0 0 1px var(--civic-border)' }}>
+                <span className="inline-flex size-8 items-center justify-center rounded-full bg-[var(--civic-primary-glow)] text-[var(--civic-primary)]">
+                  <Icon name="calendar_month" className="text-base" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--civic-muted)]">Joined</p>
+                  <p className="text-sm font-bold text-[var(--civic-text)]">
+                    {user?.date_joined ? new Date(user.date_joined).toLocaleDateString() : 'Recently joined'}
+                  </p>
+                </div>
               </div>
             </div>
           </div>

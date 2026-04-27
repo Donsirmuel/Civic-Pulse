@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import type { CredentialResponse } from '@react-oauth/google';
-import { GoogleLogin } from '@react-oauth/google';
 import { Link, useNavigate } from 'react-router-dom';
+import CivicGoogleButton from '../components/auth/CivicGoogleButton';
 import { Button, Input, Logo, Icon } from '../components/common';
 import { authService } from '../services';
 
@@ -10,6 +9,9 @@ const authStats = [
   { value: '98.2%', label: 'Reply rate' },
   { value: '24/7', label: 'Live access' },
 ];
+
+const loginHeroImage =
+  'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1600&h=900&fit=crop';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -34,17 +36,12 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
-    if (!credentialResponse.credential) {
-      setError('Google sign-in did not return a valid credential.');
-      return;
-    }
-
+  const handleGoogleCredential = async (credential: string) => {
     setLoading(true);
     setError('');
 
     try {
-      await authService.googleAuth(credentialResponse.credential);
+      await authService.googleAuth(credential);
       navigate('/feed');
     } catch (err) {
       console.error('Google auth error:', err);
@@ -65,6 +62,15 @@ export default function LoginPage() {
             className="civic-auth-hero relative flex flex-col justify-between overflow-hidden px-12 py-10"
             style={{ background: 'linear-gradient(180deg, var(--civic-bg) 0%, var(--civic-surface-muted) 100%)' }}
           >
+            <img
+              src={loginHeroImage}
+              alt="Civic city background"
+              className="absolute inset-0 h-full w-full scale-105 object-cover opacity-25 blur-[2px]"
+            />
+            <div
+              className="absolute inset-0"
+              style={{ background: 'linear-gradient(180deg, rgba(10,106,59,0.16) 0%, rgba(22,33,51,0.08) 55%, rgba(22,33,51,0.14) 100%)' }}
+            />
             <div className="absolute inset-0 bg-pattern opacity-30" />
             <div className="civic-auth-grid" />
             <div className="civic-auth-rings" />
@@ -191,12 +197,11 @@ export default function LoginPage() {
                     </div>
 
                     <div className="flex justify-center">
-                      <GoogleLogin
-                        onSuccess={handleGoogleSuccess}
-                        onError={() => setError('Google sign-in failed. Please try again.')}
-                        text="continue_with"
-                        shape="rectangular"
-                        theme="outline"
+                      <CivicGoogleButton
+                        onCredential={handleGoogleCredential}
+                        onError={setError}
+                        label="Continue with Google"
+                        variant="surface"
                       />
                     </div>
                   </div>
@@ -210,6 +215,49 @@ export default function LoginPage() {
           <div className="px-5 py-8" style={{ background: 'var(--civic-surface-soft)' }}>
             <div className="flex justify-center">
               <Logo size="md" linkTo={null} subtitle="Community First" />
+            </div>
+
+            <div className="mt-5 overflow-hidden rounded-md" style={{ boxShadow: 'var(--civic-shadow-soft)' }}>
+              <div className="relative h-24">
+                <img
+                  src={loginHeroImage}
+                  alt="City update feed"
+                  className="h-full w-full object-cover"
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{ background: 'linear-gradient(90deg, rgba(10,106,59,0.45) 0%, rgba(22,33,51,0.14) 65%, rgba(22,33,51,0.08) 100%)' }}
+                />
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.14em] text-white/90">
+                  <span>Local updates</span>
+                  <span>Live feed</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 space-y-4">
+              <span className="civic-chip-active">Live platform access</span>
+              <h1 className="text-3xl font-black leading-tight tracking-[-0.04em] text-[var(--civic-text)]">
+                Follow local issues and official replies in one place.
+              </h1>
+              <p className="text-sm leading-6 text-[var(--civic-muted)]">
+                Sign in to track reports, post updates, and stay close to conversations shaping your community.
+              </p>
+
+              <div className="grid grid-cols-3 gap-2">
+                {authStats.map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-md px-3 py-3"
+                    style={{ background: 'var(--civic-surface)', boxShadow: 'inset 0 0 0 1px var(--civic-border)' }}
+                  >
+                    <p className="text-xl font-black tracking-[-0.04em] text-[var(--civic-text)]">{item.value}</p>
+                    <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--civic-muted)]">
+                      {item.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="mt-8 rounded-md p-5" style={{ background: 'var(--civic-surface)', boxShadow: 'var(--civic-shadow-soft)' }}>
@@ -259,12 +307,11 @@ export default function LoginPage() {
                 </Button>
 
                 <div className="flex justify-center">
-                  <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={() => setError('Google sign-in failed. Please try again.')}
-                    text="continue_with"
-                    shape="rectangular"
-                    theme="outline"
+                  <CivicGoogleButton
+                    onCredential={handleGoogleCredential}
+                    onError={setError}
+                    label="Continue with Google"
+                    variant="elevated"
                   />
                 </div>
               </form>

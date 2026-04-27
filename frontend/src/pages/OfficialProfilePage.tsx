@@ -167,7 +167,7 @@ export default function OfficialProfilePage() {
 
   return (
     <StandardLayout showRightSidebar={false}>
-      <div className="min-h-screen" style={{ background: 'linear-gradient(180deg, var(--civic-bg) 0%, var(--civic-bg-deep) 100%)' }}>
+      <div className="min-h-screen overflow-x-hidden" style={{ background: 'linear-gradient(180deg, var(--civic-bg) 0%, var(--civic-bg-deep) 100%)' }}>
         <div className="relative h-56 overflow-hidden" style={{ background: 'linear-gradient(135deg, var(--civic-surface-muted) 0%, var(--civic-surface-inset) 100%)' }}>
           <img
             src={
@@ -181,8 +181,8 @@ export default function OfficialProfilePage() {
 
         <div className="px-4 pb-10 lg:px-8">
           <div className="relative -mt-20 civic-panel p-6">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-              <div className="flex flex-col gap-5 sm:flex-row sm:items-end">
+            <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+              <div className="min-w-0 flex flex-col gap-5 sm:flex-row sm:items-end">
                 <img
                   src={
                     official.avatar ||
@@ -194,9 +194,9 @@ export default function OfficialProfilePage() {
                   style={{ boxShadow: '0 18px 36px rgba(22,33,51,0.16), 0 0 0 4px var(--civic-surface)' }}
                 />
 
-                <div>
+                <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-3">
-                    <h1 className="text-4xl font-black tracking-[-0.04em] text-[var(--civic-text)] lg:text-5xl">
+                    <h1 className="break-words text-4xl font-black tracking-[-0.04em] text-[var(--civic-text)] lg:text-5xl">
                       {officeName}
                     </h1>
                     <span
@@ -225,7 +225,7 @@ export default function OfficialProfilePage() {
                 </div>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 <Button variant="outline" size="sm" icon="mail">
                   Contact Office
                 </Button>
@@ -235,7 +235,7 @@ export default function OfficialProfilePage() {
               </div>
             </div>
 
-            <div className="mt-8 grid gap-4 md:grid-cols-4">
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <div className="rounded-md p-5" style={{ background: 'var(--civic-surface-strong)', boxShadow: 'inset 0 0 0 1px var(--civic-border)' }}>
                 <p className="text-3xl font-black tracking-[-0.04em] text-[var(--civic-text)]">{issueMetrics.totalAssigned}</p>
                 <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.14em] text-[var(--civic-muted)]">Open cases</p>
@@ -256,7 +256,7 @@ export default function OfficialProfilePage() {
           </div>
 
           <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_290px]">
-            <div className="civic-panel">
+            <div className="min-w-0 civic-panel">
               <div className="flex gap-8 overflow-x-auto px-6">
                 {tabItems.map((tab) => (
                   <button
@@ -322,7 +322,7 @@ export default function OfficialProfilePage() {
               </div>
             </div>
 
-            <aside className="space-y-4 xl:sticky xl:top-[96px] xl:self-start">
+            <aside className="min-w-0 space-y-4 xl:sticky xl:top-[96px] xl:self-start">
               <section className="civic-panel-soft p-5">
                 <p className="civic-label">Office focus</p>
                 <div className="mt-4 space-y-3">
@@ -344,7 +344,7 @@ export default function OfficialProfilePage() {
                     <Icon name="mail" className="mt-0.5 text-[var(--civic-primary)]" />
                     <div>
                       <p className="font-bold text-[var(--civic-text)]">Official address</p>
-                      <p className="mt-1 text-[var(--civic-muted)]">{official.email || 'office@civicpulse.gov.ng'}</p>
+                      <p className="mt-1 break-all text-[var(--civic-muted)]">{official.email || 'office@civicpulse.gov.ng'}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">

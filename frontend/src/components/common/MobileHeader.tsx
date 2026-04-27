@@ -46,7 +46,7 @@ export default function MobileHeader() {
         <>
           <div className="fixed inset-0 z-40 lg:hidden" style={{ background: 'var(--civic-overlay)' }} onClick={() => setShowMenu(false)} />
           <div
-            className="fixed right-0 top-0 bottom-0 z-50 w-72 shadow-[0_24px_48px_rgba(22,33,51,0.14)] ring-1 lg:hidden"
+            className="fixed right-0 top-0 bottom-0 z-50 w-72 border-l shadow-[0_24px_48px_rgba(22,33,51,0.14)] lg:hidden"
             style={{ background: 'var(--civic-surface)', borderColor: 'var(--civic-border)' }}
           >
             <div className="flex h-full flex-col">

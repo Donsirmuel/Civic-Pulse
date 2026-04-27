@@ -16,6 +16,17 @@ interface StandardLayoutProps {
   showRightSidebarControls?: boolean;
 }
 
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+const parseStoredWidth = (key: string, fallback: number, min: number, max: number) => {
+  const raw = localStorage.getItem(key);
+  const parsed = raw ? Number.parseInt(raw, 10) : Number.NaN;
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+  return clamp(parsed, min, max);
+};
+
 export default function StandardLayout({
   children,
   leftSidebar,
@@ -26,15 +37,9 @@ export default function StandardLayout({
   stickyRightSidebar = false,
   showRightSidebarControls = true,
 }: StandardLayoutProps) {
-  const [leftWidth, setLeftWidth] = useState(() => {
-    const saved = localStorage.getItem('standardLayout_leftWidth');
-    return saved ? parseInt(saved) : 280;
-  });
+  const [leftWidth, setLeftWidth] = useState(() => parseStoredWidth('standardLayout_leftWidth', 280, 220, 450));
 
-  const [rightWidth, setRightWidth] = useState(() => {
-    const saved = localStorage.getItem('standardLayout_rightWidth');
-    return saved ? parseInt(saved) : 350;
-  });
+  const [rightWidth, setRightWidth] = useState(() => parseStoredWidth('standardLayout_rightWidth', 350, 250, 500));
 
   const [isRightCollapsed, setIsRightCollapsed] = useState(() => {
     const saved = localStorage.getItem('standardLayout_rightCollapsed');

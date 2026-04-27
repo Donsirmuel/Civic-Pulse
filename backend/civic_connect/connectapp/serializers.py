@@ -4,7 +4,7 @@ from .models import UserProfile, Issue, Post, Comment, Message, Notification, Bo
 
 
 class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True)
     email = serializers.CharField(required=False, allow_blank=True)
     first_name = serializers.CharField(required=False, allow_blank=True)
     last_name = serializers.CharField(required=False, allow_blank=True)
@@ -16,13 +16,20 @@ class UserSerializer(serializers.ModelSerializer):
 
     def validate_username(self, value):
         """Ensure username is unique"""
-        if User.objects.filter(username=value).exists():
+        queryset = User.objects.filter(username=value)
+        if self.instance:
+            queryset = queryset.exclude(pk=self.instance.pk)
+
+        if queryset.exists():
             raise serializers.ValidationError("Username already exists.")
         return value
 
     def create(self, validated_data):
         """Override create to handle password hashing"""
-        password = validated_data.pop('password')
+        password = validated_data.pop('password', None)
+        if not password:
+            raise serializers.ValidationError({'password': 'This field is required.'})
+
         # Use create_user which handles password hashing
         user = User.objects.create_user(
             username=validated_data['username'],
@@ -32,6 +39,18 @@ class UserSerializer(serializers.ModelSerializer):
             last_name=validated_data.get('last_name', '')
         )
         return user
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        if password:
+            instance.set_password(password)
+
+        instance.save()
+        return instance
 
 
 class UserProfileSerializer(serializers.ModelSerializer):

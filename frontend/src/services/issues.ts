@@ -11,6 +11,29 @@ function normalizeListResponse<T>(data: T[] | PaginatedResponse<T>): T[] {
   return Array.isArray(data) ? data : data.results || [];
 }
 
+const LIST_CACHE_TTL_MS = 4000;
+const listCache = new Map<string, { timestamp: number; data: Issue[] }>();
+const listInFlight = new Map<string, Promise<Issue[]>>();
+
+function serializeParams(params?: {
+  status?: string;
+  category?: string;
+  state?: string;
+  scope?: string;
+  ordering?: string;
+  search?: string;
+}) {
+  const normalized = Object.entries(params || {})
+    .filter(([, value]) => value !== undefined && value !== '')
+    .sort(([a], [b]) => a.localeCompare(b));
+  return JSON.stringify(normalized);
+}
+
+function clearListCache() {
+  listCache.clear();
+  listInFlight.clear();
+}
+
 export const issuesService = {
   // Get all issues
   getIssues: async (params?: {
@@ -21,9 +44,30 @@ export const issuesService = {
     ordering?: string;
     search?: string;
   }) => {
+    const key = serializeParams(params);
+    const cached = listCache.get(key);
+    if (cached && Date.now() - cached.timestamp < LIST_CACHE_TTL_MS) {
+      return cached.data;
+    }
+
+    const inFlight = listInFlight.get(key);
+    if (inFlight) return inFlight;
+
+    const request = (async () => {
+      try {
+        const response = await apiClient.get<Issue[] | PaginatedResponse<Issue>>('issues/', { params });
+        const data = normalizeListResponse(response.data);
+        listCache.set(key, { timestamp: Date.now(), data });
+        return data;
+      } finally {
+        listInFlight.delete(key);
+      }
+    })();
+
+    listInFlight.set(key, request);
+
     try {
-      const response = await apiClient.get<Issue[] | PaginatedResponse<Issue>>('issues/', { params });
-      return normalizeListResponse(response.data);
+      return await request;
     } catch {
       throw new Error('Failed to fetch issues');
     }
@@ -53,6 +97,7 @@ export const issuesService = {
   }): Promise<Issue> => {
     try {
       const response = await apiClient.post<Issue>('issues/', data);
+      clearListCache();
       return response.data;
     } catch {
       throw new Error('Failed to create issue');
@@ -63,6 +108,7 @@ export const issuesService = {
   updateIssue: async (id: number, data: Partial<Issue>): Promise<Issue> => {
     try {
       const response = await apiClient.patch<Issue>(`issues/${id}/`, data);
+      clearListCache();
       return response.data;
     } catch {
       throw new Error('Failed to update issue');
@@ -76,6 +122,7 @@ export const issuesService = {
         status,
         note,
       });
+      clearListCache();
       return response.data;
     } catch {
       throw new Error('Failed to update issue status');
@@ -118,6 +165,7 @@ export const issuesService = {
       const response = await apiClient.post<ActionResponse>(`issues/${id}/assign/`, {
         assigned_to_id: assignedToId,
       });
+      clearListCache();
       return response.data;
     } catch {
       throw new Error('Failed to assign issue');
@@ -128,6 +176,7 @@ export const issuesService = {
   assignIssueToMe: async (id: number): Promise<ActionResponse> => {
     try {
       const response = await apiClient.post<ActionResponse>(`issues/${id}/assign_to_me/`);
+      clearListCache();
       return response.data;
     } catch {
       throw new Error('Failed to assign issue to you');

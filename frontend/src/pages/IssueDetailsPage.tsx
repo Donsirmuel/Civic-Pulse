@@ -77,8 +77,8 @@ export default function IssueDetailsPage() {
     <div className="space-y-4">
       <div className="civic-panel p-5">
         <p className="civic-label">Case navigator</p>
-        <h3 className="mt-2 text-lg font-bold text-slate-900">Related civic reports</h3>
-        <p className="mt-1 text-sm leading-6 text-slate-600">
+        <h3 className="mt-2 text-lg font-bold text-[var(--civic-text)]">Related civic reports</h3>
+        <p className="mt-1 text-sm leading-6 text-[var(--civic-muted)]">
           Similar reports help officials compare patterns and identify repeated infrastructure failures.
         </p>
       </div>
@@ -88,9 +88,12 @@ export default function IssueDetailsPage() {
         { id: '3', title: 'Street Light Outage Near Market Square', category: 'utilities' },
         { id: '4', title: 'Waste Overflow Beside Primary School', category: 'environment' },
       ].map((relatedIssue) => (
-        <button key={relatedIssue.id} className="civic-panel-soft w-full p-4 text-left transition hover:bg-[#f7f0e6]">
-          <p className="text-sm font-semibold text-slate-900">{relatedIssue.title}</p>
-          <p className="mt-1 text-xs font-medium text-primary">{relatedIssue.category}</p>
+        <button
+          key={relatedIssue.id}
+          className="civic-panel-soft w-full p-4 text-left transition hover:brightness-[0.98]"
+        >
+          <p className="text-sm font-semibold text-[var(--civic-text)]">{relatedIssue.title}</p>
+          <p className="mt-1 text-xs font-medium text-[var(--civic-primary)]">{relatedIssue.category}</p>
         </button>
       ))}
     </div>
@@ -98,11 +101,14 @@ export default function IssueDetailsPage() {
 
   if (isLoading) {
     return (
-      <StandardLayout leftSidebar={<div className="text-sm text-slate-500">Loading...</div>} showRightSidebar={false}>
+      <StandardLayout leftSidebar={<div className="text-sm text-[var(--civic-muted)]">Loading...</div>} showRightSidebar={false}>
         <div className="flex min-h-screen items-center justify-center px-4">
           <div className="civic-panel px-8 py-10 text-center">
-            <div className="mx-auto mb-4 size-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-            <p className="text-sm font-semibold text-slate-700">Loading issue details...</p>
+            <div
+              className="mx-auto mb-4 size-10 animate-spin rounded-full border-2 border-t-transparent"
+              style={{ borderColor: 'var(--civic-primary)', borderTopColor: 'transparent' }}
+            />
+            <p className="text-sm font-semibold text-[var(--civic-text)]">Loading issue details...</p>
           </div>
         </div>
       </StandardLayout>
@@ -111,15 +117,16 @@ export default function IssueDetailsPage() {
 
   if (error || !issue || !issueView) {
     return (
-      <StandardLayout leftSidebar={<div className="text-sm text-slate-500">Error</div>} showRightSidebar={false}>
+      <StandardLayout leftSidebar={<div className="text-sm text-[var(--civic-muted)]">Error</div>} showRightSidebar={false}>
         <div className="flex min-h-screen items-center justify-center px-4">
           <div className="civic-panel max-w-md px-8 py-10 text-center">
-            <Icon name="error" className="mb-4 text-6xl text-red-500" />
-            <h2 className="text-xl font-bold text-slate-900">Error Loading Issue</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">{error || 'Issue not found'}</p>
+            <Icon name="error" className="mb-4 text-6xl text-[var(--civic-danger)]" />
+            <h2 className="text-xl font-bold text-[var(--civic-text)]">Error Loading Issue</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--civic-muted)]">{error || 'Issue not found'}</p>
             <button
               onClick={() => navigate(-1)}
-              className="mt-5 rounded-md bg-primary px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90"
+              className="mt-5 rounded-md px-6 py-2.5 text-sm font-semibold text-[var(--civic-primary-contrast)] transition hover:brightness-105"
+              style={{ background: 'linear-gradient(135deg, var(--civic-primary) 0%, var(--civic-primary-deep) 100%)' }}
             >
               Go Back
             </button>
@@ -131,15 +138,15 @@ export default function IssueDetailsPage() {
 
   return (
     <StandardLayout leftSidebar={relatedIssuesSidebar} showRightSidebar={false}>
-      <div className="glass-header sticky top-0 z-20 border-b border-[#e6d8c6]">
+      <div className="glass-header sticky top-0 z-20 border-b" style={{ borderColor: 'var(--civic-border)' }}>
         <div className="flex items-center gap-4 px-4 py-4 lg:px-6">
-          <button onClick={() => navigate(-1)} className="rounded-md bg-white/80 p-2 transition hover:bg-white">
-            <Icon name="arrow_back" className="text-slate-700" />
+          <button onClick={() => navigate(-1)} className="civic-icon-button size-10 rounded-full">
+            <Icon name="arrow_back" className="text-lg" />
           </button>
           <div>
             <p className="civic-label">Issue record</p>
-            <h1 className="mt-1 text-xl font-black tracking-tight text-slate-900">Civic Case File</h1>
-            <p className="text-xs text-slate-500">Issue #{issue.id}</p>
+            <h1 className="mt-1 text-xl font-black tracking-tight text-[var(--civic-text)]">Civic Case File</h1>
+            <p className="text-xs text-[var(--civic-muted)]">Issue #{issue.id}</p>
           </div>
         </div>
       </div>
@@ -152,26 +159,26 @@ export default function IssueDetailsPage() {
                 <img className="size-12 shrink-0 rounded-md ring-2 ring-[#efe2d2]" src={issueView.author.avatar} alt={issueView.author.name} />
                 <div className="min-w-0 flex-1">
                   <div className="mb-1 flex flex-wrap items-center gap-2">
-                    <span className="font-bold text-slate-900">{issueView.author.name}</span>
-                    <span className="text-sm text-slate-500">{issueView.author.username}</span>
+                    <span className="font-bold text-[var(--civic-text)]">{issueView.author.name}</span>
+                    <span className="text-sm text-[var(--civic-muted)]">{issueView.author.username}</span>
                   </div>
-                  <p className="text-xs text-slate-500">{formatTime(new Date(issue.created_at))}</p>
+                  <p className="text-xs text-[var(--civic-muted)]">{formatTime(new Date(issue.created_at))}</p>
                 </div>
               </div>
 
               <p className="civic-label">Issue summary</p>
-              <h2 className="mt-2 text-3xl font-black tracking-tight text-slate-900">{issue.title || issue.description}</h2>
-              <p className="mt-4 text-base leading-8 text-slate-700">{issue.description}</p>
+              <h2 className="mt-2 text-3xl font-black tracking-tight text-[var(--civic-text-strong)]">{issue.title || issue.description}</h2>
+              <p className="mt-4 text-base leading-8 text-[var(--civic-muted)]">{issue.description}</p>
 
               <div className="mt-5 flex flex-wrap items-center gap-2">
-                <span className="rounded-md bg-[#f7f0e6] px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-slate-700">
+                <span className="civic-chip">
                   {issue.scope}
                 </span>
                 <span className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-bold ${statusConfig[issue.status as IssueStatus].color}`}>
                   <Icon name={statusConfig[issue.status as IssueStatus].icon} className="text-base" />
                   {statusConfig[issue.status as IssueStatus].label}
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-md bg-[#fbf7f2] px-3 py-1.5 text-sm font-semibold text-slate-700">
+                <span className="inline-flex items-center gap-1.5 rounded-md bg-[var(--civic-surface-soft)] px-3 py-1.5 text-sm font-semibold text-[var(--civic-text)]">
                   <Icon name={categoryIcons[issue.category as IssueCategory]} className="text-base" />
                   {issue.category.charAt(0).toUpperCase() + issue.category.slice(1)}
                 </span>
@@ -197,16 +204,16 @@ export default function IssueDetailsPage() {
 
               <div className="mt-5 grid gap-3 md:grid-cols-3">
                 <div className="civic-panel-soft p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Location context</p>
-                  <p className="mt-2 text-sm font-semibold text-slate-900">{getLocationString(issueView.location || issue)}</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--civic-muted)]">Location context</p>
+                  <p className="mt-2 text-sm font-semibold text-[var(--civic-text)]">{getLocationString(issueView.location || issue)}</p>
                 </div>
                 <div className="civic-panel-soft p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Assigned office</p>
-                  <p className="mt-2 text-sm font-semibold text-slate-900">{issueView.assignedTo?.name || 'Awaiting official assignment'}</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--civic-muted)]">Assigned office</p>
+                  <p className="mt-2 text-sm font-semibold text-[var(--civic-text)]">{issueView.assignedTo?.name || 'Awaiting official assignment'}</p>
                 </div>
                 <div className="civic-panel-soft p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Engagement</p>
-                  <p className="mt-2 text-sm font-semibold text-slate-900">{issue.upvotes || 0} supports · {issue.comment_count || 0} comments</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--civic-muted)]">Engagement</p>
+                  <p className="mt-2 text-sm font-semibold text-[var(--civic-text)]">{issue.upvotes || 0} supports · {issue.comment_count || 0} comments</p>
                 </div>
               </div>
             </section>
@@ -215,9 +222,9 @@ export default function IssueDetailsPage() {
               <div className="mb-5 flex items-center justify-between gap-4">
                 <div>
                   <p className="civic-label">Audit trail</p>
-                  <h2 className="mt-2 text-xl font-bold text-slate-900">Status History</h2>
+                  <h2 className="mt-2 text-xl font-bold text-[var(--civic-text)]">Status History</h2>
                 </div>
-                <div className="rounded-md bg-[#fbf7f2] px-4 py-2 text-xs font-bold text-slate-600">
+                <div className="rounded-md bg-[var(--civic-surface-soft)] px-4 py-2 text-xs font-bold text-[var(--civic-muted)]">
                   {statusHistory.length} update{statusHistory.length === 1 ? '' : 's'}
                 </div>
               </div>
@@ -227,7 +234,7 @@ export default function IssueDetailsPage() {
                   statusHistory.map((history, index) => (
                     <div key={history.id || index} className="relative pl-8">
                       {index < statusHistory.length - 1 && (
-                        <div className="absolute bottom-0 left-[13px] top-8 w-0.5 bg-[#e7dbcc]" />
+                        <div className="absolute bottom-0 left-[13px] top-8 w-0.5 bg-[var(--civic-border)]" />
                       )}
                       <div className={`absolute left-0 top-1 rounded-full border p-1.5 ${statusConfig[history.status as IssueStatus]?.color || 'bg-slate-100'}`}>
                         <Icon name={statusConfig[history.status as IssueStatus]?.icon || 'info'} className="text-xs" />
@@ -237,17 +244,24 @@ export default function IssueDetailsPage() {
                           <span className={`rounded-md px-2.5 py-1 text-xs font-bold ${statusConfig[history.status as IssueStatus]?.color || 'bg-slate-100'}`}>
                             {statusConfig[history.status as IssueStatus]?.label || 'Unknown'}
                           </span>
-                          <span className="text-xs text-slate-500">{history.created_at ? formatTime(new Date(history.created_at)) : 'recently'}</span>
+                          <span className="text-xs text-[var(--civic-muted)]">{history.created_at ? formatTime(new Date(history.created_at)) : 'recently'}</span>
                         </div>
-                        <p className="mt-3 text-sm text-slate-700">
+                        <p className="mt-3 text-sm text-[var(--civic-muted)]">
                           Updated by <strong>{history.updated_by?.first_name || history.updated_by?.username || 'System'}</strong>
                         </p>
-                        {history.note && <p className="mt-3 rounded-md bg-white p-3 text-sm leading-6 text-slate-600">{history.note}</p>}
+                        {history.note && (
+                          <p
+                            className="mt-3 rounded-md p-3 text-sm leading-6 text-[var(--civic-muted)]"
+                            style={{ background: 'var(--civic-surface)', boxShadow: 'inset 0 0 0 1px var(--civic-ghost-border)' }}
+                          >
+                            {history.note}
+                          </p>
+                        )}
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="civic-panel-soft p-6 text-center text-sm text-slate-500">No status history available yet.</div>
+                  <div className="civic-panel-soft p-6 text-center text-sm text-[var(--civic-muted)]">No status history available yet.</div>
                 )}
               </div>
             </section>
@@ -255,7 +269,7 @@ export default function IssueDetailsPage() {
             <section className="civic-panel p-6">
               <div className="mb-5">
                 <p className="civic-label">Public discussion</p>
-                <h2 className="mt-2 text-xl font-bold text-slate-900">Official Responses & Comments</h2>
+                <h2 className="mt-2 text-xl font-bold text-[var(--civic-text)]">Official Responses & Comments</h2>
               </div>
 
               <div className="civic-panel-soft mb-6 p-4">
@@ -263,26 +277,29 @@ export default function IssueDetailsPage() {
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   placeholder="Draft your reply to this report..."
-                  className="min-h-[96px] w-full resize-none rounded-md border border-transparent bg-white p-4 text-slate-900 placeholder:text-slate-400 focus:border-primary/20 focus:ring-0"
+                  className="min-h-[96px] w-full resize-none rounded-md p-4 text-[var(--civic-text)] placeholder:text-[var(--civic-muted)] outline-none"
+                  style={{ background: 'var(--civic-surface)', boxShadow: 'inset 0 0 0 1px var(--civic-ghost-border)' }}
                 />
                 <div className="mt-3 flex items-center justify-end gap-2">
                   <button
                     onClick={() => setCommentText('')}
-                    className="rounded-md bg-[#eef1f5] px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-[#e3e8ef]"
+                    className="rounded-md px-4 py-2.5 text-sm font-semibold text-[var(--civic-text)] transition hover:brightness-[0.98]"
+                    style={{ background: 'var(--civic-surface)', boxShadow: 'inset 0 0 0 1px var(--civic-border)' }}
                   >
                     Clear
                   </button>
                   <button
                     onClick={handleCommentSubmit}
                     disabled={!commentText.trim()}
-                    className="rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="rounded-md px-5 py-2.5 text-sm font-semibold text-[var(--civic-primary-contrast)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
+                    style={{ background: 'linear-gradient(135deg, var(--civic-primary) 0%, var(--civic-primary-deep) 100%)' }}
                   >
                     Send Reply
                   </button>
                 </div>
               </div>
 
-              <div className="civic-panel-soft p-8 text-center text-sm text-slate-500">
+              <div className="civic-panel-soft p-8 text-center text-sm text-[var(--civic-muted)]">
                 No comments yet. Be the first citizen or official to add context here.
               </div>
             </section>
@@ -291,19 +308,19 @@ export default function IssueDetailsPage() {
           <aside className="space-y-5">
             <section className="civic-panel p-5">
               <p className="civic-label">Resolution status</p>
-              <h3 className="mt-2 text-lg font-bold text-slate-900">Operational next steps</h3>
+              <h3 className="mt-2 text-lg font-bold text-[var(--civic-text)]">Operational next steps</h3>
               <div className="mt-4 space-y-3 text-sm">
                 <div className="civic-panel-soft flex items-start gap-3 p-4">
-                  <Icon name="policy" className="mt-0.5 text-primary" />
-                  <p className="text-slate-700">Assign the relevant local official if the issue is still unowned.</p>
+                  <Icon name="policy" className="mt-0.5 text-[var(--civic-primary)]" />
+                  <p className="text-[var(--civic-muted)]">Assign the relevant local official if the issue is still unowned.</p>
                 </div>
                 <div className="civic-panel-soft flex items-start gap-3 p-4">
-                  <Icon name="schedule" className="mt-0.5 text-primary" />
-                  <p className="text-slate-700">Update the status quickly so citizens can trust the process.</p>
+                  <Icon name="schedule" className="mt-0.5 text-[var(--civic-primary)]" />
+                  <p className="text-[var(--civic-muted)]">Update the status quickly so citizens can trust the process.</p>
                 </div>
                 <div className="civic-panel-soft flex items-start gap-3 p-4">
-                  <Icon name="photo_camera" className="mt-0.5 text-primary" />
-                  <p className="text-slate-700">Attach field evidence as the issue moves toward resolution.</p>
+                  <Icon name="photo_camera" className="mt-0.5 text-[var(--civic-primary)]" />
+                  <p className="text-[var(--civic-muted)]">Attach field evidence as the issue moves toward resolution.</p>
                 </div>
               </div>
             </section>

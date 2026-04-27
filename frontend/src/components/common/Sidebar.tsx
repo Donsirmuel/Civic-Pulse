@@ -35,6 +35,19 @@ export default function Sidebar() {
   }, []);
 
   useEffect(() => {
+    const eventName = usersService.getUserUpdatedEventName();
+    const handleUserUpdated = (event: Event) => {
+      const customEvent = event as CustomEvent<User>;
+      if (customEvent.detail) {
+        setUser(customEvent.detail);
+      }
+    };
+
+    window.addEventListener(eventName, handleUserUpdated as EventListener);
+    return () => window.removeEventListener(eventName, handleUserUpdated as EventListener);
+  }, []);
+
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsMenuOpen(false);

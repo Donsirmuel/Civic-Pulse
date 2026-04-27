@@ -1,6 +1,28 @@
 import apiClient from './apiClient';
 import type{ User, UserProfile, OfficialMetrics, OfficialJurisdiction } from '../types';
 
+let currentUserInFlight: Promise<User> | null = null;
+const USER_UPDATED_EVENT_NAME = 'civic-user-updated';
+
+function persistCurrentUser(user: User, notify = true): User {
+  localStorage.setItem('currentUser', JSON.stringify(user));
+  if (notify && typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(USER_UPDATED_EVENT_NAME, { detail: user }));
+  }
+  return user;
+}
+
+function readCurrentUserFromStorage(): User | null {
+  const stored = localStorage.getItem('currentUser');
+  if (!stored) return null;
+
+  try {
+    return JSON.parse(stored) as User;
+  } catch {
+    return null;
+  }
+}
+
 export const usersService = {
   // Get all users
   getUsers: async (params?: { search?: string }): Promise<User[]> => {
@@ -24,11 +46,39 @@ export const usersService = {
 
   // Get current user
   getCurrentUser: async (): Promise<User> => {
+    const cached = readCurrentUserFromStorage();
+    if (cached) return cached;
+
+    if (currentUserInFlight) return currentUserInFlight;
+
+    currentUserInFlight = (async () => {
+      try {
+        const response = await apiClient.get<User>('/users/me/');
+        return persistCurrentUser(response.data, false);
+      } finally {
+        currentUserInFlight = null;
+      }
+    })();
+
     try {
-      const response = await apiClient.get<User>('/users/me/');
-      return response.data;
+      return await currentUserInFlight;
     } catch {
       throw new Error('Failed to fetch current user');
+    }
+  },
+
+  setCurrentUser: (user: User): User => persistCurrentUser(user),
+
+  getUserUpdatedEventName: (): string => USER_UPDATED_EVENT_NAME,
+
+  updateCurrentUser: async (data: Partial<User>): Promise<User> => {
+    try {
+      const current = await usersService.getCurrentUser();
+      const response = await apiClient.patch<User>(`/users/${current.id}/`, data);
+      const merged = { ...current, ...response.data };
+      return persistCurrentUser(merged);
+    } catch {
+      throw new Error('Failed to update current user');
     }
   },
 

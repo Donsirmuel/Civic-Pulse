@@ -1,7 +1,6 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
-import type { CredentialResponse } from '@react-oauth/google';
-import { GoogleLogin } from '@react-oauth/google';
 import { Link, useNavigate } from 'react-router-dom';
+import CivicGoogleButton from '../components/auth/CivicGoogleButton';
 import { Button, Input, Logo, Icon } from '../components/common';
 import { authService } from '../services';
 
@@ -10,6 +9,9 @@ const accessHighlights = [
   'Post updates and reports',
   'Follow official replies',
 ];
+
+const registerHeroImage =
+  'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=1600&h=900&fit=crop';
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -58,16 +60,11 @@ export default function RegisterPage() {
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
-    if (!credentialResponse.credential) {
-      setError('Google sign-up did not return a valid credential.');
-      return;
-    }
-
+  const handleGoogleCredential = async (credential: string) => {
     try {
       setLoading(true);
       setError('');
-      await authService.googleAuth(credentialResponse.credential);
+      await authService.googleAuth(credential);
       navigate('/feed');
     } catch (err) {
       console.error('Google auth error:', err);
@@ -88,6 +85,15 @@ export default function RegisterPage() {
             className="civic-auth-hero relative flex flex-col justify-between overflow-hidden px-12 py-10"
             style={{ background: 'linear-gradient(180deg, var(--civic-bg) 0%, var(--civic-surface-muted) 100%)' }}
           >
+            <img
+              src={registerHeroImage}
+              alt="Community background"
+              className="absolute inset-0 h-full w-full scale-105 object-cover opacity-25 blur-[2px]"
+            />
+            <div
+              className="absolute inset-0"
+              style={{ background: 'linear-gradient(180deg, rgba(10,106,59,0.18) 0%, rgba(22,33,51,0.08) 55%, rgba(22,33,51,0.14) 100%)' }}
+            />
             <div className="absolute inset-0 bg-pattern opacity-30" />
             <div className="civic-auth-grid" />
             <div className="civic-auth-rings" />
@@ -243,12 +249,11 @@ export default function RegisterPage() {
                     </div>
 
                     <div className="flex justify-center">
-                      <GoogleLogin
-                        onSuccess={handleGoogleSuccess}
-                        onError={() => setError('Google sign-up failed. Please try again.')}
-                        text="signup_with"
-                        shape="rectangular"
-                        theme="outline"
+                      <CivicGoogleButton
+                        onCredential={handleGoogleCredential}
+                        onError={setError}
+                        label="Sign up with Google"
+                        variant="surface"
                       />
                     </div>
                   </div>
@@ -262,6 +267,49 @@ export default function RegisterPage() {
           <div className="px-5 py-8" style={{ background: 'var(--civic-surface-soft)' }}>
             <div className="flex justify-center">
               <Logo size="md" linkTo={null} subtitle="Community First" />
+            </div>
+
+            <div className="mt-5 overflow-hidden rounded-md" style={{ boxShadow: 'var(--civic-shadow-soft)' }}>
+              <div className="relative h-24">
+                <img
+                  src={registerHeroImage}
+                  alt="Community conversations"
+                  className="h-full w-full object-cover"
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{ background: 'linear-gradient(90deg, rgba(10,106,59,0.48) 0%, rgba(22,33,51,0.2) 66%, rgba(22,33,51,0.08) 100%)' }}
+                />
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.14em] text-white/90">
+                  <span>Join civic pulse</span>
+                  <span>Get started</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 space-y-4">
+              <span className="civic-chip-active">Create your account</span>
+              <h1 className="text-3xl font-black leading-tight tracking-[-0.04em] text-[var(--civic-text)]">
+                Report issues, share updates, and follow progress in your area.
+              </h1>
+              <p className="text-sm leading-6 text-[var(--civic-muted)]">
+                Join Civic Pulse to participate in local conversations and keep up with official responses.
+              </p>
+
+              <div className="space-y-2">
+                {accessHighlights.map((item) => (
+                  <div
+                    key={item}
+                    className="flex items-center gap-3 rounded-md px-3 py-3"
+                    style={{ background: 'var(--civic-surface)', boxShadow: 'inset 0 0 0 1px var(--civic-border)' }}
+                  >
+                    <span className="inline-flex size-7 items-center justify-center rounded-full bg-[var(--civic-primary-glow)] text-[var(--civic-primary)]">
+                      <Icon name="check" className="text-[14px]" />
+                    </span>
+                    <p className="text-sm font-semibold text-[var(--civic-text)]">{item}</p>
+                  </div>
+                ))}
+              </div>
             </div>
 
             <div className="mt-8 rounded-md p-5" style={{ background: 'var(--civic-surface)', boxShadow: 'var(--civic-shadow-soft)' }}>
@@ -331,12 +379,11 @@ export default function RegisterPage() {
                 </Button>
 
                 <div className="flex justify-center">
-                  <GoogleLogin
-                    onSuccess={handleGoogleSuccess}
-                    onError={() => setError('Google sign-up failed. Please try again.')}
-                    text="signup_with"
-                    shape="rectangular"
-                    theme="outline"
+                  <CivicGoogleButton
+                    onCredential={handleGoogleCredential}
+                    onError={setError}
+                    label="Sign up with Google"
+                    variant="elevated"
                   />
                 </div>
               </form>
