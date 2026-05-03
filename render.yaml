@@ -24,7 +24,6 @@ services:
   - type: web
     runtime: static
     name: civicnet-frontend
-    plan: free
     rootDir: frontend
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
